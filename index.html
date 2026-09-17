@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>黑夜君临 · 隐藏夜王推测器</title>
+<style>
+  :root{
+    --bg:#0c0c0f; --panel:#16161c; --panel2:#1d1d25; --line:#2b2b35;
+    --gold:#d9bb72; --gold-dim:#8d7a45; --text:#e9e7e2; --muted:#9b988f; --danger:#d9736a; --good:#8fbf7a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    padding:14px;line-height:1.5;-webkit-text-size-adjust:100%}
+  .wrap{max-width:760px;margin:0 auto}
+  h1{font-size:19px;margin:0 0 2px;letter-spacing:.12em;color:var(--gold);font-weight:600}
+  .sub{font-size:12px;color:var(--muted);margin-bottom:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
+  label{display:block;font-size:11.5px;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;text-transform:uppercase}
+  select{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);
+    border-radius:7px;padding:10px;font-size:14px;font-family:inherit}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(min-width:620px){.grid{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr 1fr 1fr}}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:7px}
+  .res{margin-top:2px}
+  .res-head{font-size:12px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:9px}
+  .locked{color:var(--good);font-weight:600}
+  .boss{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:9px}
+  .boss.lock{border-color:#4a5f3c;box-shadow:inset 3px 0 0 var(--good)}
+  .boss-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .boss-name{font-size:16px;font-weight:600}
+  .boss-pct{font-size:19px;font-weight:700;color:var(--gold);white-space:nowrap}
+  .boss-sub{font-size:12px;color:var(--muted);margin-top:1px}
+  .weak{font-size:12px;color:var(--text);margin-top:6px}
+  .weak b{color:var(--gold);font-weight:600}
+  .bar{height:5px;background:#26262f;border-radius:3px;overflow:hidden;margin-top:9px}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,#8a6f2f,var(--gold))}
+  .chips{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .chip{font-size:11px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:3px 9px}
+  .chip b{color:var(--text)}
+  .note{font-size:12.5px;border-radius:8px;padding:9px 11px;margin-bottom:9px;background:var(--panel2);border:1px solid var(--line)}
+  .note.warn{border-color:#5a4436;color:#e3c9a0}
+  .note.bad{border-color:#5c3a36;color:#f0b6ae}
+  .note.ok{border-color:#3f5a3a;color:#bfe0b0}
+  .empty{color:var(--muted);font-size:13px;padding:6px 2px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{text-align:left;padding:6px 7px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:500;font-size:11.5px}
+  details summary{cursor:pointer;font-size:12.5px;color:var(--gold);outline:none}
+  .foot{font-size:11px;color:var(--muted);margin:16px 0 6px}
+  button.t{background:none;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:11.5px;cursor:pointer;font-family:inherit}
+  button.t:hover{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>隐藏夜王推测器</h1>
+  <div class="sub">艾尔登法环 黑夜君临 · 深夜模式（深度 3+ 的 BOSS 隐藏事件）</div>
+
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label>第 1 夜 Boss</label>
+        <select id="n1"></select>
+      </div>
+      <div>
+        <label>第 2 夜 Boss</label>
+        <select id="n2"></select>
+      </div>
+    </div>
+    <div class="grid3" style="margin-top:10px">
+      <div>
+        <label>当前深度</label>
+        <select id="depth">
+          <option value="3" selected>深度 3</option>
+          <option value="4">深度 4</option>
+          <option value="5">深度 5</option>
+          <option value="any">不确定</option>
+        </select>
+      </div>
+    </div>
+    <div class="hint">两个下拉都可以先选。带「⚠ 与对方无共同夜王」的选项仍然可选 —— 那种情况通常意味着第 2 夜打的是追加/突袭 boss。第 2 夜还没打可以留空。</div>
+  </div>
+
+  <div id="out" class="res"></div>
+
+  <div class="card">
+    <details>
+      <summary>完整对照表（Boss → 可能夜王）</summary>
+      <div id="tbl" style="margin-top:10px"></div>
+    </details>
+  </div>
+
+  <div class="foot">
+    数据：nightlord.app 内嵌数据集（社区数据表 + 数据挖掘），已与日文 jbjbgame / gamewith、中文游民星空两张表交叉验证。<br>
+    概率为候选间归一化的相对值，非官方数值。布德奇冥无永夜版本、且池子覆盖几乎全部 boss，永远是兜底候选。
+  </div>
+</div>
+
+<script>
+const DB = {"nightlords": {"gladius": {"cn": "格拉狄乌斯", "sub": "三头野兽 / 黑夜野兽", "en": "Gladius", "weak": ["圣"]}, "adel": {"cn": "艾德雷", "sub": "碎身巨颚 / 黑夜之爵", "en": "Adel", "weak": ["中毒", "冻伤"]}, "gnoster": {"cn": "格诺斯塔", "sub": "慧心虫 / 黑夜之智", "en": "Gnoster", "weak": ["火"]}, "maris": {"cn": "玛利斯", "sub": "征兆 / 深海黑夜", "en": "Maris", "weak": ["雷"]}, "libra": {"cn": "利普拉", "sub": "平衡律法的魔物 / 黑夜之魔", "en": "Libra", "weak": ["圣", "火", "发狂"]}, "fulghor": {"cn": "弗格尔", "sub": "暗中飞驰的猎人 / 黑夜光骑士", "en": "Fulghor", "weak": ["雷", "出血"]}, "caligo": {"cn": "卡莉果", "sub": "雾中裂缝 / 黑夜雾霾", "en": "Caligo", "weak": ["火", "出血"]}, "heolstor": {"cn": "布德奇冥", "sub": "黑夜化形者 / 黑夜王", "en": "Heolstor", "weak": ["圣(一阶段)", "雷(二阶段)"], "everdark": false}, "balancers": {"cn": "哈尔莫妮亚", "sub": "安定者们", "en": "Harmonia", "weak": ["睡眠(官方)/高伤AOE与盾反(实际)"]}, "dreglord": {"cn": "史柴格斯", "sub": "废弃物之王", "en": "Straghess", "weak": ["神圣(-25%抗)", "火焰(-20%抗)", "出血/冻伤(低抗)"], "everdark": false}}, "prior": {"gladius": 10.08, "adel": 10.08, "gnoster": 10.08, "maris": 5.04, "libra": 10.08, "fulghor": 10.08, "caligo": 10.08, "heolstor": 7.06, "dreglord": 11.29, "balancers": 16.13}, "everdark_chance": {"1": 0.0, "2": 0.2, "3": 0.35, "4": 0.5, "5": 0.5}, "n1": [{"name": "亚人女王&亚人剑圣", "nightlords": ["gladius", "heolstor"], "alias": ["亚人女王+亚人剑圣", "亚人女王", "demi", "Demi-Human Queen & Swordmaster"]}, {"name": "铃珠猎人", "nightlords": ["gladius", "caligo", "heolstor"], "alias": ["bbh", "Bell Bearing Hunter", "铃玉狩り", "铃珠"]}, {"name": "百足恶魔", "nightlords": ["gnoster", "libra", "fulghor", "heolstor"], "alias": ["centipede", "Centipede Demon"]}, {"name": "战场老将", "nightlords": ["gnoster", "libra", "heolstor"], "alias": ["battlefield", "Battlefield Commander"]}, {"name": "熔铁恶魔", "nightlords": ["gnoster", "maris", "caligo", "heolstor"], "alias": ["smelter", "Smelter Demon"]}, {"name": "双黑夜骑兵", "nightlords": ["adel", "fulghor", "heolstor"], "alias": ["cavalry", "Night's Cavalry Duo", "黑夜骑兵"]}, {"name": "英雄石像鬼", "nightlords": ["adel", "maris", "fulghor", "heolstor"], "alias": ["gargoyle", "Valiant Gargoyle", "石像鬼"]}, {"name": "蚯蚓脸", "nightlords": ["adel", "maris", "fulghor", "heolstor"], "alias": ["wormface", "Wormface", "蚯蚓头"]}, {"name": "公爵的弗雷迪亚", "nightlords": ["adel", "libra", "caligo", "heolstor"], "alias": ["freja", "The Duke's Dear Freja", "弗雷迪亚"]}, {"name": "贪食魔龙", "nightlords": ["adel", "maris", "fulghor", "heolstor"], "alias": ["gaping", "Gaping Dragon"]}, {"name": "提比亚的唤声船", "nightlords": ["gnoster", "libra", "caligo", "heolstor"], "alias": ["tibia", "Tibia Mariner", "唤声船"]}, {"name": "腐烂树灵", "nightlords": ["gnoster", "caligo", "heolstor"], "alias": ["tree", "Ulcerated Tree Spirit", "树灵"]}, {"name": "接肢君王", "nightlords": ["maris", "caligo", "heolstor"], "alias": ["grafted", "Grafted Monarch", "接肢"]}, {"name": "王室幽魂", "nightlords": ["libra", "fulghor", "heolstor"], "alias": ["revenant", "Royal Revenant", "幽魂"]}, {"name": "死骑士", "nightlords": ["dreglord"], "alias": ["deathknight", "Death Knight"]}, {"name": "负伤恶魔&洞底恶魔", "nightlords": ["balancers"], "alias": ["demons", "Demon in Pain & Demon from Below", "负伤恶魔"]}, {"name": "神兽战士&咒剑士", "nightlords": ["balancers"], "alias": ["warrior", "Divine Beast Warrior & Curseblade", "神兽战士"]}, {"name": "大红熊", "nightlords": ["dreglord"], "alias": ["bear", "Great Red Bear", "大赤熊", "赤熊"]}], "n2": [{"name": "古龙", "nightlords": ["adel", "heolstor"], "alias": ["ancient", "Ancient Dragon"]}, {"name": "熔炉骑士&黄金河马", "nightlords": ["adel", "libra", "heolstor"], "alias": ["crucible", "Crucible Knight & Golden Hippopotamus", "熔炉骑士"]}, {"name": "冷冽谷的舞娘", "nightlords": ["caligo", "heolstor"], "alias": ["dancer", "Dancer of the Boreal Valley", "舞娘"]}, {"name": "死亡仪式鸟", "nightlords": ["libra", "heolstor"], "alias": ["deathrite", "Death Rite Bird", "仪式鸟"]}, {"name": "龙装大树守卫&王城骑兵", "nightlords": ["gnoster", "caligo", "heolstor"], "alias": ["draconic", "Draconic Tree Sentinel & Royal Cavalrymen", "龙装大树守卫"]}, {"name": "坠星成兽", "nightlords": ["maris", "heolstor"], "alias": ["fallingstar", "Full-Grown Fallingstar Beast", "坠星"]}, {"name": "恶兆妖鬼", "nightlords": ["gladius", "fulghor", "heolstor"], "alias": ["fell", "Fell Omen", "恶兆"]}, {"name": "神皮贵族&神皮使徒", "nightlords": ["maris", "libra", "caligo", "heolstor"], "alias": ["godskin", "Godskin Duo", "神皮"]}, {"name": "大土龙", "nightlords": ["gnoster", "heolstor"], "alias": ["wyrm", "Great Wyrm", "土龙"]}, {"name": "无名王者", "nightlords": ["fulghor", "heolstor"], "alias": ["nameless", "Nameless King"]}, {"name": "诺克斯龙人士兵", "nightlords": ["gnoster", "fulghor", "heolstor"], "alias": ["nox", "Nox Dragonkin Soldier", "龙人士兵"]}, {"name": "外域老将", "nightlords": ["adel", "fulghor", "heolstor"], "alias": ["outland", "Outland Commander", "僻地老将", "偏地老将"]}, {"name": "大树守卫&王城骑兵", "nightlords": ["gladius", "gnoster", "maris", "heolstor"], "alias": ["treesent", "Tree Sentinel & Royal Cavalrymen", "大树守卫"]}, {"name": "骑士亚尔特留斯", "nightlords": ["dreglord"], "alias": ["artorias", "Knight Artorias", "亚尔特留斯"]}, {"name": "神兽舞狮", "nightlords": ["dreglord"], "alias": ["lion", "Divine Beast Dancing Lion", "舞狮"]}, {"name": "鲜血君王", "nightlords": ["balancers"], "alias": ["mohg", "Lord of Blood", "血之君王"]}, {"name": "恶魔王子", "nightlords": ["balancers"], "alias": ["demonprince", "Demon Prince"]}], "everdark_tells": {"adel": {"1": ["双黑夜骑兵"]}, "gnoster": {"1": ["提比亚的唤声船"]}, "fulghor": {"1": ["蚯蚓脸"]}, "caligo": {"1": ["公爵的弗雷迪亚", "提比亚的唤声船"], "2": ["神皮贵族&神皮使徒"]}, "libra": {"1": ["战场老将"], "2": ["神皮贵族&神皮使徒"]}}, "low_confidence": [["铃珠猎人", "caligo"]]}
+;
+const NL = DB.nightlords, PRIOR = DB.prior, EDCH = DB.everdark_chance;
+const LOWCONF = new Set((DB.low_confidence||[]).map(p => p[0]+"|"+p[1]));
+const TELLS = DB.everdark_tells || {};
+
+function pool(list, name){ const r = list.find(x => x.name === name); return r ? r.nightlords : []; }
+function cn(k){ return NL[k].cn; }
+function hasED(k){ return NL[k].everdark !== false; }
+
+const n1Sel = document.getElementById('n1'), n2Sel = document.getElementById('n2'), dSel = document.getElementById('depth');
+const OPT1 = DB.n1.map(b => ({v:b.name, pool:b.nightlords}));
+const OPT2 = DB.n2.map(b => ({v:b.name, pool:b.nightlords}));
+
+function fill(sel, opts, valid, ph){
+  const prev = sel.value;
+  sel.innerHTML = '';
+  const o0 = document.createElement('option'); o0.value=''; o0.textContent = ph; sel.appendChild(o0);
+  opts.forEach(o => {
+    const bad = valid && !valid.has(o.v);
+    const el = document.createElement('option'); el.value = o.v;
+    el.textContent = o.v + (bad ? '\u00a0\u00a0⚠ 与对方无共同夜王' : '');
+    sel.appendChild(el);
+  });
+  if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev; else sel.value = '';
+}
+
+function compatN2(n1v){
+  if (!n1v) return null;
+  const a = new Set(pool(DB.n1, n1v)), ok = new Set();
+  OPT2.forEach(o => { if (o.pool.some(k => a.has(k))) ok.add(o.v); });
+  return ok;
+}
+function compatN1(n2v){
+  if (!n2v) return null;
+  const b = new Set(pool(DB.n2, n2v)), ok = new Set();
+  OPT1.forEach(o => { if (o.pool.some(k => b.has(k))) ok.add(o.v); });
+  return ok;
+}
+
+function calc(){
+  const n1 = n1Sel.value, n2 = n2Sel.value, dep = dSel.value;
+  const out = document.getElementById('out');
+  let cands = Object.keys(PRIOR);
+  if (n1) cands = cands.filter(k => pool(DB.n1, n1).includes(k));
+  if (n2) cands = cands.filter(k => pool(DB.n2, n2).includes(k));
+  const total = cands.reduce((s,k) => s + PRIOR[k], 0);
+
+  let h = '';
+  if (!n1 && !n2){
+    out.innerHTML = '<div class="card"><div class="empty">选一个第 1 夜 boss 开始推测。</div></div>';
+    return;
+  }
+  if (!cands.length){
+    out.innerHTML = '<div class="card"><div class="note bad">这两个 boss 在数据里没有共同夜王。优先怀疑第 2 夜是追加/突袭 boss（surprise followup），用第 1 夜单条推。</div></div>';
+    return;
+  }
+  const rows = cands.map(k => ({k, pct: PRIOR[k]/total*100})).sort((a,b) => b.pct - a.pct);
+  const locked = rows.length === 1 || Math.abs(rows[0].pct - 100) < 0.1;
+  const max = rows[0].pct;
+
+  // 常夜专属池：只对真正匹配的那个候选标出来，不笼统下结论
+  rows.forEach(r => {
+    const t = TELLS[r.k]; if (!t) return;
+    [[1,n1],[2,n2]].forEach(([night, seen]) => {
+      if (seen && t[night] && t[night].includes(seen)){
+        if (rows.length === 1)
+          h += '<div class="note ok">常夜锁定：第 '+night+' 夜「'+seen+'」只在'+cn(r.k)+'的永夜池里 ⇒ 这局必定是永夜版本。</div>';
+        r._ed = true;
+      }
+    });
+  });
+
+  const ed = dep === 'any' ? null : EDCH[dep];
+  h += '<div class="res-head">' + (locked ? '<span class="locked">锁定</span> · 唯一可能' : '可能夜王 · '+rows.length+' 个候选') + '</div>';
+
+  rows.forEach(r => {
+    const n = NL[r.k];
+    const showED = ed !== null && hasED(r.k) && ed > 0;
+    h += '<div class="boss'+(locked?' lock':'')+'">';
+    h += '<div class="boss-top"><div><div class="boss-name">'+n.cn+'</div><div class="boss-sub">'+n.sub+'</div></div>';
+    h += '<div class="boss-pct">'+r.pct.toFixed(1)+'%</div></div>';
+    h += '<div class="weak">弱点 / 准备：<b>'+n.weak.join('、')+'</b></div>';
+    if (showED && !r._ed){
+      h += '<div class="chips"><span class="chip">常规 <b>'+(r.pct*(1-ed)).toFixed(1)+'%</b></span>'
+         + '<span class="chip">永夜 <b>'+(r.pct*ed).toFixed(1)+'%</b></span></div>';
+    } else if (r._ed){
+      h += '<div class="chips"><span class="chip">永夜 <b>'+r.pct.toFixed(1)+'%</b></span><span class="chip">常规 <b>0%</b></span></div>';
+    } else if (hasED(r.k) === false){
+      h += '<div class="chips"><span class="chip">无永夜版本</span></div>';
+    }
+    if (r._ed){
+      h += '<div class="chips"><span class="chip" style="border-color:#3f5a3a;color:#bfe0b0">永夜专属池（看见的那个 boss 常规池里没有）</span></div>';
+    }
+    h += '<div class="bar"><i style="width:'+(r.pct/max*100).toFixed(1)+'%"></i></div></div>';
+    if (LOWCONF.has((n1||'')+'|'+r.k) || LOWCONF.has((n2||'')+'|'+r.k))
+      h += '<div class="note warn">注：这个配对只有单一数据源收录，置信度较低（日文/中文攻略表未列入）。</div>';
+  });
+
+  // 准备方向：并集，但把频次高的排前面（取交集优先）
+  const cnt = {};
+  rows.forEach(r => new Set(NL[r.k].weak.map(w => w.split('(')[0])).forEach(w => cnt[w] = (cnt[w]||0)+1));
+  const order = Object.keys(cnt).sort((a,b) => cnt[b]-cnt[a]);
+  h += '<div class="card"><div class="res-head">准备方向</div><div style="font-size:13.5px">'
+     + order.map(w => w + (cnt[w] > 1 ? ' <span style="color:var(--muted);font-size:11px">×'+cnt[w]+'</span>' : '')).join(' &nbsp;·&nbsp; ')
+     + '</div><div class="hint">×N 表示有 N 个候选吃这个属性，优先级更高。泛用起手：雷或圣。</div></div>';
+
+  out.innerHTML = h;
+}
+
+function buildTable(){
+  let h = '<table><tr><th style="width:34%">第 1 夜</th><th>可能夜王</th></tr>';
+  DB.n1.forEach(b => h += '<tr><td>'+b.name+'</td><td>'+b.nightlords.map(cn).join('、')+'</td></tr>');
+  h += '<tr><th>第 2 夜</th><th>可能夜王</th></tr>';
+  DB.n2.forEach(b => h += '<tr><td>'+b.name+'</td><td>'+b.nightlords.map(cn).join('、')+'</td></tr>');
+  h += '</table>';
+  document.getElementById('tbl').innerHTML = h;
+}
+
+n1Sel.addEventListener('change', () => { fill(n2Sel, OPT2, compatN2(n1Sel.value), '未打 / 不确定'); calc(); });
+n2Sel.addEventListener('change', () => { fill(n1Sel, OPT1, compatN1(n2Sel.value), '未打 / 不确定'); calc(); });
+dSel.addEventListener('change', calc);
+
+fill(n1Sel, OPT1, null, '未打 / 不确定');
+fill(n2Sel, OPT2, null, '未打 / 不确定');
+buildTable();
+calc();
+</script>
+</body>
+</html>
