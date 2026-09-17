@@ -3,74 +3,191 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#05070d">
 <title>黑夜君临 · 隐藏夜王推测器</title>
 <style>
   :root{
-    --bg:#0c0c0f; --panel:#16161c; --panel2:#1d1d25; --line:#2b2b35;
-    --gold:#d9bb72; --gold-dim:#8d7a45; --text:#e9e7e2; --muted:#9b988f; --danger:#d9736a; --good:#8fbf7a;
+    --serif: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, "Times New Roman", SimSun, "Songti SC", serif;
+    --kai: KaiTi, "STKaiti", "Kaiti SC", Georgia, serif;
+    --ink:#04060b; --panel-a:rgba(14,18,28,.86); --panel-b:rgba(7,10,17,.92);
+    --gold:#e2c37a; --gold-bright:#f7e7b4; --gold-mid:#c9a44f; --gold-dim:rgba(226,195,122,.55);
+    --line: rgba(226,195,122,.20); --line-soft: rgba(226,195,122,.12);
+    --text:#e4e0d6; --muted:#b0ada1; --blood:#a04a3c; --good:#a8c98a; --bad:#d98a80;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);
-    font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
-    padding:14px;line-height:1.5;-webkit-text-size-adjust:100%}
-  .wrap{max-width:760px;margin:0 auto}
-  h1{font-size:19px;margin:0 0 2px;letter-spacing:.12em;color:var(--gold);font-weight:600}
-  .sub{font-size:12px;color:var(--muted);margin-bottom:14px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
-  label{display:block;font-size:11.5px;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;text-transform:uppercase}
-  select{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);
-    border-radius:7px;padding:10px;font-size:14px;font-family:inherit}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .grid3{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  @media(min-width:620px){.grid{grid-template-columns:1fr 1fr}.grid3{grid-template-columns:1fr 1fr 1fr}}
-  .hint{font-size:11.5px;color:var(--muted);margin-top:7px}
-  .res{margin-top:2px}
-  .res-head{font-size:12px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:9px}
-  .locked{color:var(--good);font-weight:600}
-  .boss{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:9px}
-  .boss.lock{border-color:#4a5f3c;box-shadow:inset 3px 0 0 var(--good)}
-  .boss-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
-  .boss-name{font-size:16px;font-weight:600}
-  .boss-pct{font-size:19px;font-weight:700;color:var(--gold);white-space:nowrap}
-  .boss-sub{font-size:12px;color:var(--muted);margin-top:1px}
-  .weak{font-size:12px;color:var(--text);margin-top:6px}
-  .weak b{color:var(--gold);font-weight:600}
-  .bar{height:5px;background:#26262f;border-radius:3px;overflow:hidden;margin-top:9px}
-  .bar>i{display:block;height:100%;background:linear-gradient(90deg,#8a6f2f,var(--gold))}
-  .chips{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
-  .chip{font-size:11px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:3px 9px}
-  .chip b{color:var(--text)}
-  .note{font-size:12.5px;border-radius:8px;padding:9px 11px;margin-bottom:9px;background:var(--panel2);border:1px solid var(--line)}
-  .note.warn{border-color:#5a4436;color:#e3c9a0}
-  .note.bad{border-color:#5c3a36;color:#f0b6ae}
-  .note.ok{border-color:#3f5a3a;color:#bfe0b0}
-  .empty{color:var(--muted);font-size:13px;padding:6px 2px}
+  html{background:var(--ink)}
+  body{
+    margin:0;color:var(--text);font-family:var(--serif);line-height:1.6;letter-spacing:.015em;
+    padding:18px 14px 44px;-webkit-text-size-adjust:100%;position:relative;overflow-x:hidden;
+    background:
+      radial-gradient(1150px 680px at 80% -14%, rgba(96,128,178,.20), transparent 62%),
+      radial-gradient(880px 520px at 10% 4%, rgba(78,64,120,.16), transparent 60%),
+      radial-gradient(1400px 900px at 50% 118%, rgba(16,38,58,.26), transparent 66%),
+      linear-gradient(180deg,#05070d 0%,#070a12 42%,#04060a 100%);
+    background-attachment:fixed;
+  }
+  /* 夜空：月辉 + 星点 + 漂移夜雾 */
+  .sky{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .sky::before{content:"";position:absolute;top:-190px;right:-120px;width:520px;height:520px;border-radius:50%;
+    background:radial-gradient(circle,rgba(206,224,255,.15) 0%,rgba(150,175,225,.08) 38%,transparent 70%);
+    filter:blur(6px)}
+  .sky::after{content:"";position:absolute;inset:0;opacity:.5;
+    background-image:
+      radial-gradient(1.4px 1.4px at 12% 18%, rgba(255,255,255,.55), transparent),
+      radial-gradient(1.2px 1.2px at 32% 8%, rgba(255,255,255,.35), transparent),
+      radial-gradient(1.6px 1.6px at 68% 22%, rgba(255,255,255,.45), transparent),
+      radial-gradient(1.1px 1.1px at 84% 12%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1.3px 1.3px at 52% 34%, rgba(255,255,255,.25), transparent),
+      radial-gradient(1.2px 1.2px at 22% 46%, rgba(255,255,255,.22), transparent),
+      radial-gradient(1.5px 1.5px at 92% 42%, rgba(255,255,255,.3), transparent);
+    animation:twinkle 9s ease-in-out infinite}
+  @keyframes twinkle{0%,100%{opacity:.35}50%{opacity:.62}}
+  .fog{position:fixed;inset:-10% -10% auto -10%;height:70%;pointer-events:none;z-index:0;filter:blur(52px);opacity:.5}
+  .fog i{position:absolute;display:block;border-radius:50%;background:rgba(70,104,140,.20)}
+  .fog i:nth-child(1){width:46%;height:60%;left:4%;top:10%;animation:drift1 46s ease-in-out infinite}
+  .fog i:nth-child(2){width:38%;height:52%;right:6%;top:26%;background:rgba(120,96,150,.14);animation:drift2 58s ease-in-out infinite}
+  @keyframes drift1{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(6%,4%,0)}}
+  @keyframes drift2{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(-7%,-3%,0)}}
+  /* 颗粒质感 */
+  .grain{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.05;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.6'/></svg>")}
+  /* 四边暗角 */
+  .vignette{position:fixed;inset:0;pointer-events:none;z-index:1;
+    background:radial-gradient(120% 90% at 50% 45%, transparent 52%, rgba(0,0,0,.55) 100%)}
+  .wrap{position:relative;z-index:2;max-width:780px;margin:0 auto}
+
+  header{text-align:center;margin-bottom:6px}
+  h1{margin:0;font-size:26px;line-height:1.25;letter-spacing:.24em;font-weight:400;
+    background:linear-gradient(180deg,#fbefc6 0%,#e2c37a 46%,#a8863c 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 20px rgba(226,195,122,.22))}
+  .eyebrow{font-size:10.5px;letter-spacing:.34em;color:var(--gold-dim);margin:2px 0 8px}
+  .tagline{font-family:var(--kai);font-size:12.5px;color:#b6b3a3;letter-spacing:.08em}
+  .rule{display:flex;align-items:center;gap:11px;margin:12px 0 18px}
+  .rule::before,.rule::after{content:"";flex:1;height:1px;
+    background:linear-gradient(90deg,transparent,var(--line),transparent)}
+  .rule b{width:7px;height:7px;transform:rotate(45deg);border:1px solid var(--gold-dim);
+    background:rgba(226,195,122,.16);box-shadow:0 0 10px rgba(226,195,122,.3)}
+
+  .card{position:relative;margin-bottom:15px;padding:15px 16px;
+    background:linear-gradient(180deg,var(--panel-a),var(--panel-b));
+    border:1px solid var(--line-soft);border-radius:3px;
+    box-shadow:0 12px 34px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.035)}
+  .card::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:3px;
+    background:
+      linear-gradient(var(--gold-dim),var(--gold-dim)) 0 0/15px 1px no-repeat,
+      linear-gradient(var(--gold-dim),var(--gold-dim)) 0 0/1px 15px no-repeat,
+      linear-gradient(var(--gold-dim),var(--gold-dim)) 100% 100%/15px 1px no-repeat,
+      linear-gradient(var(--gold-dim),var(--gold-dim)) 100% 100%/1px 15px no-repeat;
+    opacity:.75}
+
+  label{display:block;font-size:10.5px;letter-spacing:.22em;color:rgba(226,195,122,.78);margin-bottom:7px}
+  select{width:100%;appearance:none;background-color:rgba(18,23,35,.96);color:#f2eee4;
+    border:1px solid rgba(226,195,122,.30);border-radius:2px;padding:11px 34px 11px 15px;font-size:14.5px;font-family:inherit;
+    letter-spacing:.03em;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14'><path d='M7 2.2 L11.8 7 L7 11.8 L2.2 7 Z' fill='none' stroke='%23d8b872' stroke-width='1.2'/><circle cx='7' cy='7' r='1' fill='%23d8b872'/></svg>"),
+      linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.015) 60%, rgba(0,0,0,.18));
+    background-repeat:no-repeat,no-repeat;
+    background-position:right 12px center, 0 0;
+    background-size:auto,100% 100%;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05), inset 0 -8px 20px rgba(0,0,0,.55), 0 1px 6px rgba(0,0,0,.5)}
+  select:hover{border-color:rgba(226,195,122,.45)}
+  select:focus{outline:none;border-color:var(--gold-dim);box-shadow:0 0 0 1px rgba(226,195,122,.2), inset 0 0 20px rgba(226,195,122,.07)}
+  select option{background:#0a0d16;color:var(--text)}
+  .grid{display:grid;grid-template-columns:1fr;gap:11px}
+  @media(min-width:600px){.grid{grid-template-columns:1fr 1fr}}
+  .grid3{display:grid;grid-template-columns:1fr;gap:11px;margin-top:11px}
+  @media(min-width:600px){.grid3{grid-template-columns:1fr 1fr}}
+  .hint{font-family:var(--kai);font-size:12.5px;color:#aaa79b;margin-top:10px;line-height:1.75;letter-spacing:.02em}
+
+  .res-head{display:flex;align-items:center;gap:10px;font-size:11px;letter-spacing:.24em;
+    color:var(--gold-dim);margin:0 0 11px}
+  .res-head::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line-soft),transparent)}
+  .locked{color:var(--gold-bright);text-shadow:0 0 14px rgba(226,195,122,.35)}
+
+  .boss{position:relative;margin-bottom:11px;padding:14px 15px;
+    background:linear-gradient(180deg,rgba(16,20,31,.9),rgba(8,11,19,.94));
+    border:1px solid var(--line-soft);border-left:2px solid rgba(226,195,122,.34);border-radius:2px;
+    box-shadow:0 10px 26px rgba(0,0,0,.45)}
+  .boss.lock{border-color:rgba(226,195,122,.5);border-left-color:var(--gold-mid);
+    box-shadow:0 0 0 1px rgba(226,195,122,.12), 0 0 30px rgba(226,195,122,.10), inset 0 0 34px rgba(226,195,122,.05)}
+  .boss-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+  .boss-name{font-size:17px;letter-spacing:.08em;color:var(--gold-bright)}
+  .boss-name::before{content:"\25C6";font-size:.55em;color:var(--gold-dim);margin-right:8px;vertical-align:.18em}
+  .boss-sub{font-size:12px;color:#b6b3a7;letter-spacing:.08em;margin-top:2px;padding-left:19px}
+  .boss-pct{font-size:20px;letter-spacing:.06em;color:var(--gold);white-space:nowrap;
+    text-shadow:0 0 16px rgba(226,195,122,.28)}
+  .weak{font-size:12.5px;margin-top:9px}
+  .weak b{color:var(--gold);font-weight:400}
+  .bar{height:11px;margin-top:12px;background:#241812;border:1px solid rgba(226,195,122,.32);
+    border-radius:1px;overflow:hidden;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.85), 0 0 0 1px rgba(0,0,0,.45), 0 0 12px rgba(226,195,122,.06)}
+  .bar>i{display:block;height:100%;border-radius:0 2px 2px 0;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,.11) 0 1px, rgba(255,255,255,0) 1px 7px),
+      linear-gradient(180deg,#f2dda5 0%,#d8b872 26%,#b98f38 56%,#6d4d16 100%);
+    box-shadow:0 0 18px rgba(226,195,122,.45), inset 0 1px 0 rgba(255,255,255,.35), inset 0 -1px 0 rgba(0,0,0,.4)}
+  .chips{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .chip{font-size:11px;letter-spacing:.1em;color:#c9c5b8;
+    background:linear-gradient(90deg, rgba(226,195,122,.10), rgba(226,195,122,.015));
+    border:none;border-left:1px solid rgba(226,195,122,.5);border-radius:0;padding:4px 10px 4px 9px}
+  .chip b{color:#f0ece2;font-weight:400;font-family:"Segoe UI",system-ui,sans-serif;font-size:11.5px;letter-spacing:0}
+
+  .note{position:relative;font-size:12.5px;padding:10px 12px;margin-bottom:10px;border-radius:2px;
+    background:rgba(8,11,18,.8);border:1px solid var(--line-soft);border-left:2px solid var(--gold-dim)}
+  .note.warn{border-left-color:var(--gold-mid);color:#e6d3ab;background:rgba(30,24,12,.5)}
+  .note.bad{border-left-color:var(--blood);color:#edbfb7;background:rgba(34,14,12,.5)}
+  .note.ok{border-left-color:var(--good);color:#cfe3bb;background:rgba(14,26,14,.5)}
+  .empty{font-family:var(--kai);font-size:13.5px;color:#b0ada1;text-align:center;padding:18px 4px;letter-spacing:.1em}
+  .empty::before{content:"\2756";display:block;color:var(--gold-dim);margin-bottom:8px;font-size:14px}
+
   table{width:100%;border-collapse:collapse;font-size:12.5px}
-  th,td{text-align:left;padding:6px 7px;border-bottom:1px solid var(--line);vertical-align:top}
-  th{color:var(--muted);font-weight:500;font-size:11.5px}
-  details summary{cursor:pointer;font-size:12.5px;color:var(--gold);outline:none}
-  .foot{font-size:11px;color:var(--muted);margin:16px 0 6px}
-  button.t{background:none;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:11.5px;cursor:pointer;font-family:inherit}
-  button.t:hover{color:var(--text)}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid rgba(226,195,122,.09);vertical-align:top}
+  th{color:var(--gold-dim);font-weight:400;font-size:11px;letter-spacing:.14em}
+  tbody tr:nth-child(even) td{background:rgba(255,255,255,.022)}
+  tbody tr:hover td{background:rgba(226,195,122,.05)}
+  tr:last-child td{border-bottom:none}
+  details summary{list-style:none;cursor:pointer;font-size:12.5px;letter-spacing:.14em;color:var(--gold);outline:none;
+    padding:7px 10px;margin:-7px -10px;border:1px solid transparent;border-radius:2px;transition:border-color .18s,background .18s}
+  details summary::-webkit-details-marker{display:none}
+  details summary::before{content:"\25C7";color:var(--gold-dim);margin-right:9px;letter-spacing:0;transition:color .18s}
+  details[open] summary::before{content:"\25C6";color:var(--gold)}
+  details summary:hover{color:var(--gold-bright);border-color:var(--line);background:rgba(226,195,122,.05)}
+  details summary:hover::before{color:var(--gold)}
+  details[open] summary{margin-bottom:4px}
+  .prep{font-size:13.5px;line-height:1.9}
+  .prep em{font-style:normal;color:var(--gold)}
+  .foot{font-family:var(--kai);font-size:12px;color:#bcb9ab;line-height:1.9;letter-spacing:.03em;text-align:center;margin-top:22px}
+  .foot::before{content:"\2756";display:block;color:var(--gold-dim);margin-bottom:9px;opacity:.7}
+  @media (prefers-reduced-motion: reduce){.sky::after,.fog i{animation:none !important}}
 </style>
 </head>
 <body>
+<div class="sky"></div>
+<div class="fog"><i></i><i></i></div>
+<div class="grain"></div>
+<div class="vignette"></div>
+
 <div class="wrap">
-  <h1>隐藏夜王推测器</h1>
-  <div class="sub">艾尔登法环 黑夜君临 · 深夜模式（深度 3+ 的 BOSS 隐藏事件）</div>
+  <header>
+    <div class="eyebrow">ELDEN RING&nbsp;NIGHTREIGN</div>
+    <h1>隐藏夜王推测器</h1>
+    <div class="rule"><b></b></div>
+    <div class="tagline">深き夜 · 深夜模式　|　从第 1 / 2 夜 BOSS 推测第 3 天夜王</div>
+  </header>
 
   <div class="card">
     <div class="grid">
       <div>
-        <label>第 1 夜 Boss</label>
+        <label>第 1 夜 BOSS</label>
         <select id="n1"></select>
       </div>
       <div>
-        <label>第 2 夜 Boss</label>
+        <label>第 2 夜 BOSS</label>
         <select id="n2"></select>
       </div>
     </div>
-    <div class="grid3" style="margin-top:10px">
+    <div class="grid3">
       <div>
         <label>当前深度</label>
         <select id="depth">
@@ -81,21 +198,21 @@
         </select>
       </div>
     </div>
-    <div class="hint">两个下拉都可以先选。带「⚠ 与对方无共同夜王」的选项仍然可选 —— 那种情况通常意味着第 2 夜打的是追加/突袭 boss。第 2 夜还没打可以留空。</div>
+    <div class="hint">两个下拉都可以先选。带「⚠ 与对方无共同夜王」的选项仍然可选 —— 那种情况通常意味着第 2 夜打的是追加/突袭 BOSS。第 2 夜还没打可以留空。</div>
   </div>
 
   <div id="out" class="res"></div>
 
-  <div class="card">
+  <div class="card" style="padding:11px 15px">
     <details>
-      <summary>完整对照表（Boss → 可能夜王）</summary>
-      <div id="tbl" style="margin-top:10px"></div>
+      <summary>完整对照表　BOSS → 可能夜王</summary>
+      <div id="tbl" style="margin-top:9px"></div>
     </details>
   </div>
 
   <div class="foot">
-    数据：nightlord.app 内嵌数据集（社区数据表 + 数据挖掘），已与日文 jbjbgame / gamewith、中文游民星空两张表交叉验证。<br>
-    概率为候选间归一化的相对值，非官方数值。布德奇冥无永夜版本、且池子覆盖几乎全部 boss，永远是兜底候选。
+    数据：nightlord.app 内嵌数据集（社区数据表 + 数据挖掘），已与日文 jbjbgame / gamewith、中文游民星空两张表交叉验证。概率为候选间归一化的相对值，非官方数值。<br>
+    布德奇冥无永夜版本，且池子覆盖几乎全部 BOSS，永远是兜底候选。
   </div>
 </div>
 
@@ -150,11 +267,11 @@ function calc(){
 
   let h = '';
   if (!n1 && !n2){
-    out.innerHTML = '<div class="card"><div class="empty">选一个第 1 夜 boss 开始推测。</div></div>';
+    out.innerHTML = '<div class="card"><div class="empty">选择第 1 夜 BOSS，揭示可能的夜王。</div></div>';
     return;
   }
   if (!cands.length){
-    out.innerHTML = '<div class="card"><div class="note bad">这两个 boss 在数据里没有共同夜王。优先怀疑第 2 夜是追加/突袭 boss（surprise followup），用第 1 夜单条推。</div></div>';
+    out.innerHTML = '<div class="card"><div class="note bad">这两个 BOSS 在数据里没有共同夜王。优先怀疑第 2 夜是追加/突袭 BOSS（surprise followup），用第 1 夜单条推。</div></div>';
     return;
   }
   const rows = cands.map(k => ({k, pct: PRIOR[k]/total*100})).sort((a,b) => b.pct - a.pct);
@@ -174,7 +291,7 @@ function calc(){
   });
 
   const ed = dep === 'any' ? null : EDCH[dep];
-  h += '<div class="res-head">' + (locked ? '<span class="locked">锁定</span> · 唯一可能' : '可能夜王 · '+rows.length+' 个候选') + '</div>';
+  h += '<div class="res-head">' + (locked ? '<span class="locked">锁 定</span> · 唯一可能' : '可能夜王 · '+rows.length+' 个候选') + '</div>';
 
   rows.forEach(r => {
     const n = NL[r.k];
@@ -192,19 +309,18 @@ function calc(){
       h += '<div class="chips"><span class="chip">无永夜版本</span></div>';
     }
     if (r._ed){
-      h += '<div class="chips"><span class="chip" style="border-color:#3f5a3a;color:#bfe0b0">永夜专属池（看见的那个 boss 常规池里没有）</span></div>';
+      h += '<div class="chips"><span class="chip" style="border-color:rgba(168,201,138,.45);color:#cfe3bb">永夜专属池 · 看见的那个 BOSS 常规池里没有</span></div>';
     }
     h += '<div class="bar"><i style="width:'+(r.pct/max*100).toFixed(1)+'%"></i></div></div>';
     if (LOWCONF.has((n1||'')+'|'+r.k) || LOWCONF.has((n2||'')+'|'+r.k))
       h += '<div class="note warn">注：这个配对只有单一数据源收录，置信度较低（日文/中文攻略表未列入）。</div>';
   });
 
-  // 准备方向：并集，但把频次高的排前面（取交集优先）
   const cnt = {};
   rows.forEach(r => new Set(NL[r.k].weak.map(w => w.split('(')[0])).forEach(w => cnt[w] = (cnt[w]||0)+1));
   const order = Object.keys(cnt).sort((a,b) => cnt[b]-cnt[a]);
-  h += '<div class="card"><div class="res-head">准备方向</div><div style="font-size:13.5px">'
-     + order.map(w => w + (cnt[w] > 1 ? ' <span style="color:var(--muted);font-size:11px">×'+cnt[w]+'</span>' : '')).join(' &nbsp;·&nbsp; ')
+  h += '<div class="card"><div class="res-head">准备方向</div><div class="prep">'
+     + order.map(w => '<em>'+w+'</em>' + (cnt[w] > 1 ? ' <span style="color:var(--muted);font-size:11px">×'+cnt[w]+'</span>' : '')).join(' &nbsp;·&nbsp; ')
      + '</div><div class="hint">×N 表示有 N 个候选吃这个属性，优先级更高。泛用起手：雷或圣。</div></div>';
 
   out.innerHTML = h;
